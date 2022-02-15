@@ -1,8 +1,11 @@
 use bevy::app::CreatePlugin;
 use bevy::core::FixedTimestep;
 use bevy::prelude::*;
+use std::fmt::Error;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
+const SCREEN_WIDTH: usize = 128;
+const SCREEN_HEIGHT: usize = 128;
 
 fn main() {
     App::new()
@@ -15,6 +18,30 @@ fn main() {
         )
         .add_system(keyboard_input_system)
         .run();
+}
+
+#[derive(Component)]
+struct Cell {}
+
+#[derive(Component)]
+struct GridLayout {
+    cells: [[Cell; SCREEN_WIDTH]; SCREEN_HEIGHT],
+}
+
+impl GridLayout {
+    pub fn new(mut commands: Commands) -> Result<Self, Error> {
+        let cells = [[Cell {}; SCREEN_WIDTH]; SCREEN_HEIGHT];
+
+        for y in 0..SCREEN_HEIGHT {
+            for x in 0..SCREEN_WIDTH {
+                commands.insert(cells[y][x])
+            }
+        }
+
+        Ok(GridLayout {
+            cells: [[Cell {}; SCREEN_WIDTH]; SCREEN_HEIGHT],
+        })
+    }
 }
 
 #[derive(Component)]
@@ -35,7 +62,8 @@ fn setup(mut commands: Commands) {
         })
         .insert(Creature {
             velocity: 400.0 * Vec3::new(0.5, -0.5, 0.0).normalize(),
-        });
+        })
+        .insert(GridLayout::new(commands));
 }
 
 fn creature_movement_system(mut creature_query: Query<(&Creature, &mut Transform)>) {
